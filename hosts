@@ -1,0 +1,12 @@
+[master_nodes]
+kmaster  ansible_host=192.168.169.85
+
+[worker_nodes]
+kslave-1 ansible_host=192.168.169.86
+kslave-2 ansible_host=192.168.169.87
+
+[control_nodes]
+kmaster2 ansible_host=192.168.169.85
+
+[all:vars]
+ansible_python_interpreter=/usr/bin/python3

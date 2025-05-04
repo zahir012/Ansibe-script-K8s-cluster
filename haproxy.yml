@@ -1,0 +1,61 @@
+---
+- name: Install HAProxy
+  apt:
+    name: haproxy
+    state: present
+    update_cache: yes
+
+- name: Deploy HAProxy configuration
+  template:
+    src: templates/haproxy.cfg.j2
+    dest: /etc/haproxy/haproxy.cfg
+    mode: '0644'
+  notify: Restart HAProxy
+
+- name: Ensure HAProxy is started and enabled
+  service:
+    name: haproxy
+    state: started
+    enabled: yes
+
+---
+- name: Restart HAProxy
+  service:
+    name: haproxy
+    state: restarted
+
+---
+haproxy.cfg.j2 file name:
+
+# Global settings
+global
+    log /dev/log local0
+    log /dev/log local1 notice
+    maxconn 4096
+    user haproxy
+    group haproxy
+    daemon
+
+# Default settings
+defaults
+    log     global
+    option  httplog
+    timeout connect 5000ms
+    timeout client  50000ms
+    timeout server  50000ms
+
+# Frontend for load balancing
+frontend kubernetes
+    bind *:6443
+    option tcplog
+    mode tcp
+    default_backend kubernetes-master-nodes
+
+backend kubernetes-master-nodes
+    mode tcp
+    balance roundrobin
+    option tcp-check
+    server kubernetes-master1 192.168.169.95:6443 check fall 3 rise 2
+    server kubernetes-master2 192.168.169.85:6443 check fall 3 rise 2
+    server kubernetes-master3 192.168.169.86:6443 check fall 3 rise 2
+

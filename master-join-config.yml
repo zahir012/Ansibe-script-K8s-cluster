@@ -1,0 +1,19 @@
+---
+# tasks file for kubernetes_worker
+
+- name: Copy join-command file to master nodes
+  copy:
+    src: /tmp/master-join-command
+    dest: /tmp/master-join-command
+    mode: 0755
+
+- name: Append --apiserver-advertise-address to kubeadm join command
+  lineinfile:
+    path: /tmp/master-join-command
+    regexp: '^.*kubeadm join.*$'
+    line: '{{ item }} --apiserver-advertise-address=192.168.169.85'
+    backrefs: yes
+
+- name: Join Master Nodes
+  ansible.builtin.shell: sh /tmp/master-join-command
+  become: yes
